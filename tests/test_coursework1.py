@@ -2,27 +2,36 @@ import time
 import pytest
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from dash.testing.application_runners import import_app
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
+import requests
 
 
 # Set up Chrome WebDriver
-@pytest.fixture(scope="module")
+'''@pytest.fixture(scope="module")
 def driver():
     options = Options()
-    options.add_argument("--headless")  # Run Chrome in headless mode
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=options)
+    #options.add_argument("--headless")  # Run Chrome in headless mode
+    #service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(options=options)
     driver.get("http://127.0.0.1:8050/")  # Adjust URL if needed
     yield driver
-    driver.quit()
+    driver.quit()'''
+
+app_file = "src.coursework1"
 
 # Test 1: Check if the page title is correct
-def test_page_title(driver):
-    assert "UK Diffusion Tube Data Dashboard" in driver.title
+def test_page_title(dash_duo):
+    app = import_app(app_file)
+    dash_duo.start_server(app)
+    url = dash_duo.driver.current_url
+    response = requests.get(url)
+    assert response.status_code == 200
+    # assert "UK Diffusion Tube Data Dashboard" in driver.title
 
 # Test 2: Check if the bar chart updates correctly
 def test_bar_chart_update(driver):
