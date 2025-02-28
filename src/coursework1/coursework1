@@ -1,4 +1,5 @@
 # Imports
+from pathlib import Path
 import pandas as pd
 import plotly.express as px
 from dash import Dash, html, dcc, callback, Output, Input
@@ -13,8 +14,8 @@ external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = Dash(__name__, external_stylesheets=external_stylesheets, meta_tags=meta_tags)
 
 # Load the dataset
-file_path = '/Users/oliviachung/comp0034-tutorials/activities/London_diffusiondata_2022.xlsx'
-air_quality = pd.read_excel(file_path, engine='openpyxl')
+file_path = Path(__file__).parent.joinpath('London_diffusiondata_2022.xlsx')
+air_quality = pd.read_excel(file_path)
 
 # Normalize column names to lowercase
 air_quality.columns = air_quality.columns.str.lower()
@@ -25,10 +26,6 @@ required_columns = ['borough', 'exceeding legal limit (40ugm-3)', 'exceeding who
 missing_columns = [col for col in required_columns if col not in air_quality.columns]
 if missing_columns:
     raise ValueError(f"Missing required columns: {missing_columns}")
-
-# Load the dataset
-file_path = '/Users/oliviachung/comp0034-tutorials/activities/London_diffusiondata_2022.xlsx'
-air_quality = pd.read_excel(file_path, engine='openpyxl')
 
 # Normalize column names to lowercase
 air_quality.columns = air_quality.columns.str.lower()
