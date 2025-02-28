@@ -1,0 +1,54 @@
+from importlib import resources
+import pandas as pd
+import plotly.express as px
+from dash import Dash, html, dcc, callback, Output, Input
+import dash_bootstrap_components as dbc
+from dash import Input, Output
+
+# Define the line_chart function
+def line_chart(feature):
+    if feature not in ["sports", "participants", "events", "countries"]:
+        raise ValueError(
+            'Invalid value for "feature". Must be one of ["sports", "participants", "events", "countries"]')
+    cols = ["type", "year", "host", feature]
+    with resources.path("data", "paralympics.csv") as path:
+        line_chart_data = pd.read_csv(path, usecols=cols)
+        fig = px.line(line_chart_data, x="year", y=feature, color="type")
+        return fig
+
+# Initialize Dash app
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+
+# Define the layout
+app.layout = html.Div([
+    html.H1('My Line Chart App'),
+    dcc.Graph(id='line-chart'),
+    dcc.RadioItems(
+        options=['sports', 'participants', 'events', 'countries'],
+        value='participants',
+        id='feature-selector',
+        inline=True
+    )
+])
+
+# Define callback to update the chart
+@callback(
+    Output('line-chart', 'figure'),
+    Input('feature-selector', 'value')
+)
+def update_line_chart(feature):
+    return line_chart(feature)
+
+# Run the app
+if __name__ == '__main__':
+    app.run()
+
+# Code omitted here that creates the app and adds the layout
+
+@app.callback(
+    Output(component_id='line-chart', component_property='figure'),
+    Input(component_id='dropdown-category', component_property='value')
+)
+def update_line_chart(feature):
+    figure = line_chart(feature)
+    return figure

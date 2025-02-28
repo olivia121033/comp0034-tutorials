@@ -1,0 +1,93 @@
+from importlib import resources
+import pandas as pd
+import plotly.express as px
+from dash import Dash, html, dcc, callback, Output, Input
+import dash_bootstrap_components as dbc
+
+def bar_gender(event_type):
+    """
+    Creates a stacked bar chart showing the ratio of male and female participants in the Paralympics.
+
+    Parameters:
+    event_type: str Winter or Summer
+
+    Returns:
+    fig: Plotly Express bar chart
+    """
+    try:
+        # Load the dataset using the resources module
+        with resources.path("data", "paralympics.csv") as path:
+            df_events = pd.read_csv(path)
+
+        # Normalize case for 'type' column
+        df_events['type'] = df_events['type'].str.title()
+
+        # Ensure required columns are present
+        required_columns = ['type', 'year', 'host', 'participants_m', 'participants_f', 'participants']
+        missing_columns = [col for col in required_columns if col not in df_events.columns]
+        if missing_columns:
+            raise ValueError(f"Missing required columns: {missing_columns}")
+
+        # Drop rows with missing male/female data
+        df_events = df_events.dropna(subset=['participants_m', 'participants_f']).reset_index(drop=True)
+
+        # Calculate % of male and female participants
+        df_events['Male'] = df_events['participants_m'] / df_events['participants']
+        df_events['Female'] = df_events['participants_f'] / df_events['participants']
+
+        # Sort by type and year, and prepare x-axis labels
+        df_events.sort_values(['type', 'year'], inplace=True)
+        df_events['xlabel'] = df_events['host'] + ' ' + df_events['year'].astype(str)
+
+        # Filter by event type
+        df_filtered = df_events[df_events['type'] == event_type]
+
+        if df_filtered.empty:
+            raise ValueError(f"No data available for event type: {event_type}")
+
+        # Create stacked bar chart
+        fig = px.bar(
+            df_filtered,
+            x='xlabel',
+            y=['Male', 'Female'],
+            title=f'Gender Ratio in {event_type} Paralympics',
+            labels={'xlabel': '', 'value': '', 'variable': ''},
+            template="simple_white"
+        )
+        fig.update_xaxes(ticklen=0)
+        fig.update_yaxes(tickformat=".0%")
+        return fig
+
+    except Exception as e:
+        # Return a blank figure with an error message if anything goes wrong
+        fig = px.bar(title="Error Loading Data")
+        fig.add_annotation(text=str(e), x=0.5, y=0.5, showarrow=False, font=dict(size=16))
+        return fig
+
+
+# Dash app setup
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+
+app.layout = html.Div([
+    html.H1("Paralympics Gender Ratio"),
+    dcc.Graph(id="bar-chart"),
+    dcc.RadioItems(
+        options=[
+            {'label': 'Summer Paralympics', 'value': 'Summer'},
+            {'label': 'Winter Paralympics', 'value': 'Winter'}
+        ],
+        value='Summer',
+        id='event-type-selector',
+        inline=True
+    )
+])
+
+@callback(
+    Output("bar-chart", "figure"),
+    Input("event-type-selector", "value")
+)
+def update_bar_chart(event_type):
+    return bar_gender(event_type)
+
+if __name__ == "__main__":
+    app.run(debug=True)

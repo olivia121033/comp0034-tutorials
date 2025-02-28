@@ -1,0 +1,54 @@
+import sqlite3
+from importlib import resources
+
+from importlib import resources
+import pandas as pd
+import plotly.express as px
+from dash import Dash, html, dcc, callback, Output, Input
+import dash_bootstrap_components as dbc
+from dash import Input, Output
+
+
+def get_database_connection():
+    """
+    Create a connection to the SQLite database.
+
+    Returns:
+    conn: sqlite3.Connection object
+    """
+    path_db = resources.files("tutor.data").joinpath("paralympics.db")
+    conn = sqlite3.connect(str(path_db))
+    with conn:
+        conn.execute("PRAGMA foreign_keys = ON")
+        # conn.set_trace_callback(print)
+        return conn
+
+def create_scatter_geo():
+    # create database connection using the get_database_connection function in this file
+    connection = get_database_connection()
+
+    # define the sql query
+    sql = '''
+        SELECT event.year, host.host, host.latitude, host.longitude FROM event
+        JOIN host_event ON event.event_id = host_event.event_id
+        JOIN host on host_event.host_id = host.host_id
+        '''
+
+    df_locs = pd.read_sql(sql=sql, con=connection, index_col=None)
+    # The lat and lon are stored as string but need to be floats for the scatter_geo
+    df_locs['longitude'] = df_locs['longitude'].astype(float)
+    df_locs['latitude'] = df_locs['latitude'].astype(float)
+    # Adds a new column that concatenates the city and year e.g. Barcelona 2012
+    df_locs['name'] = df_locs['host'] + ' ' + df_locs['year'].astype(str)
+
+    fig = px.scatter_geo(df_locs,
+                         lat=df_locs.latitude,
+                         lon=df_locs.longitude,
+                         hover_name=df_locs.name,
+                         title="Where have the paralympics been held?",
+                         )
+    return fig
+
+def update_scatter_geo(feature):
+    figure = create_scatter_geo(feature)
+    return figure
