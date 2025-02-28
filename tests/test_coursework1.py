@@ -21,7 +21,7 @@ def driver():
     yield driver
     driver.quit()'''
 
-app_file = "coursework1.coursework1"
+app_file = "coursework1.airquality"
 
 # Test 1: Check if the page title is correct
 def test_page_title(dash_duo):
