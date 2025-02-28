@@ -19,7 +19,7 @@ The Card code currently looks like this:
 
 ```python
 dbc.Card([
-    dbc.CardImg(src=dash.get_asset_url("logos/2022_Beijing.png"), top=True),
+    dbc.CardImg(src=dash.get_asset_url("logos/2022_Beijing.jpg"), top=True),
     dbc.CardBody([
         html.H4("Beijing 2022", className="card-title"),
         html.P("Number of athletes: XX", className="card-text", ),
@@ -31,7 +31,7 @@ dbc.Card([
 )
 ```
 
-Modify the existing Card code so that is a function:
+Modify the existing Card code so that it is a function:
 
 - The function takes a string in the format 'host year' as a parameter. This scatter geo currently uses this for each
   map marker.
@@ -107,4 +107,4 @@ Add the card into the layout e.g. `dbc.Col(children=[card], id='card', width=4),
 
 Check in the running app that the card is displayed.
 
-[Next activity](2-6-challenge)
+[Next activity](2-6-challenge.md)
